@@ -23,6 +23,26 @@ trait SmokeTestProvider
 {
     public static function provideValidatorInput(): Generator
     {
+        yield from self::provideStableValidatorInput();
+        yield from self::provideUnstableValidatorInput();
+    }
+
+    public static function provideUnstableValidatorInput(): Generator
+    {
+        yield 'Directory' => [v::directory(), 'tests/fixtures'];
+        yield 'Executable' => [v::executable(), 'tests/fixtures/executable'];
+        yield 'Exists' => [v::exists(), 'tests/fixtures/valid-image.png'];
+        yield 'Image' => [v::image(), 'tests/fixtures/valid-image.png'];
+        yield 'Mimetype' => [v::mimetype('image/png'), 'tests/fixtures/valid-image.png'];
+        yield 'Readable' => [v::readable(), 'tests/fixtures/valid-image.png'];
+        yield 'Size' => [v::size('KB', v::between(1, 1000)), 'tests/fixtures/valid-image.png'];
+        yield 'SymbolicLink' => [v::symbolicLink(), 'tests/fixtures/symbolic-link'];
+        yield 'Uploaded' => [v::uploaded(), 'tests/fixtures/valid-image.png'];
+        yield 'Writable' => [v::writable(), 'tests/fixtures/valid-image.png'];
+    }
+
+    public static function provideStableValidatorInput(): Generator
+    {
         yield 'All' => [v::all(v::intVal()), [1, 2, 3]];
         yield 'AllOf' => [v::allOf(v::intVal(), v::greaterThan(0)), 5];
         yield 'Alnum' => [v::alnum(), 'abc123'];
@@ -63,7 +83,6 @@ trait SmokeTestProvider
         yield 'DateTimeDiff' => [v::dateTimeDiff('years', v::greaterThan(18), 'd/m/Y'), '09/12/1990'];
         yield 'Decimal' => [v::decimal(2), '1.23'];
         yield 'Digit' => [v::digit(), '7'];
-        yield 'Directory' => [v::directory(), 'tests/fixtures'];
         yield 'Domain' => [v::domain(), 'example.com'];
         yield 'Each' => [v::each(v::stringType()), ['a', 'b']];
         yield 'Email' => [v::email(), 'bob@example.com'];
@@ -72,8 +91,6 @@ trait SmokeTestProvider
         yield 'Equals' => [v::equals('x'), 'x'];
         yield 'Equivalent' => [v::equivalent(123), 123.0];
         yield 'Even' => [v::even(), 2];
-        yield 'Executable' => [v::executable(), 'tests/fixtures/executable'];
-        yield 'Exists' => [v::exists(), 'tests/fixtures/valid-image.png'];
         yield 'Extension' => [v::extension('png'), 'image.png'];
         yield 'Factor' => [v::factor(0), 36];
         yield 'FalseVal' => [v::falseVal(), false];
@@ -91,7 +108,6 @@ trait SmokeTestProvider
         yield 'HexRgbColor' => [v::hexRgbColor(), '#FFAABB'];
         yield 'Iban' => [v::iban(), 'SE35 5000 0000 0549 1000 0003'];
         yield 'Identical' => [v::identical(123), 123];
-        yield 'Image' => [v::image(), 'tests/fixtures/valid-image.png'];
         yield 'Imei' => [v::imei(), '490154203237518'];
         yield 'In' => [v::in(['a', 'b']), 'a'];
         yield 'Infinite' => [v::infinite(), INF];
@@ -119,7 +135,6 @@ trait SmokeTestProvider
         yield 'MacAddress' => [v::macAddress(), '00:11:22:33:44:55'];
         yield 'Max' => [v::max(v::equals(30)), [10, 20, 30]];
         yield 'Min' => [v::min(v::equals(10)), [10, 20, 30]];
-        yield 'Mimetype' => [v::mimetype('image/png'), 'tests/fixtures/valid-image.png'];
         yield 'Multiple' => [v::multiple(3), 9];
         yield 'Named' => [v::named('MyValidator', v::intVal()), 123];
         yield 'Negative' => [v::negative(), -1];
@@ -151,12 +166,10 @@ trait SmokeTestProvider
         yield 'PropertyOptional' => [v::propertyOptional('missing', v::email()), (object) ['email' => 'a@example.com']];
         yield 'PublicDomainSuffix' => [v::publicDomainSuffix(), 'co.uk'];
         yield 'Punct' => [v::punct(), '!@#'];
-        yield 'Readable' => [v::readable(), 'tests/fixtures/valid-image.png'];
         yield 'Regex' => [v::regex('/^[a-z]+$/'), 'abc'];
         yield 'ResourceType' => [v::resourceType(), fopen('php://temp', 'r')];
         yield 'Roman' => [v::roman(), 'XIV'];
         yield 'ScalarVal' => [v::scalarVal(), 'example'];
-        yield 'Size' => [v::size('KB', v::between(1, 1000)), 'tests/fixtures/valid-image.png'];
         yield 'Slug' => [v::slug(), 'a-valid-slug'];
         yield 'Sorted' => [v::sorted('ASC'), [1, 2, 3]];
         yield 'Space' => [v::space(), " \t\n"];
@@ -166,7 +179,6 @@ trait SmokeTestProvider
         yield 'StringVal' => [v::stringVal(), 'example'];
         yield 'SubdivisionCode' => [v::subdivisionCode('US'), 'CA'];
         yield 'Subset' => [v::subset(['a', 'b', 'c']), ['a', 'b']];
-        yield 'SymbolicLink' => [v::symbolicLink(), 'tests/fixtures/symbolic-link'];
         yield 'Templated' => [v::templated('Foo', v::stringVal()), 'foo'];
         yield 'Time' => [v::time(), '12:34:56'];
         yield 'Tld' => [v::tld(), 'com'];
@@ -174,7 +186,6 @@ trait SmokeTestProvider
         yield 'Undef' => [v::undef(), null];
         yield 'UndefOr' => [v::undefOr(v::intVal()), null];
         yield 'Unique' => [v::unique(), [1, 2, 3]];
-        yield 'Uploaded' => [v::uploaded(), 'tests/fixtures/valid-image.png'];
         yield 'Uppercase' => [v::uppercase(), 'ABC'];
         yield 'Url' => [v::url(), 'https://example.com'];
         yield 'Uuid' => [v::uuid(), '123e4567-e89b-12d3-a456-426655440000'];
@@ -182,7 +193,6 @@ trait SmokeTestProvider
         yield 'VideoUrl' => [v::videoUrl(), 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'];
         yield 'Vowel' => [v::vowel(), 'aeiou'];
         yield 'When' => [v::when(v::intVal(), v::alwaysValid(), v::alwaysInvalid()), 5];
-        yield 'Writable' => [v::writable(), 'tests/fixtures/valid-image.png'];
         yield 'Xdigit' => [v::xdigit(), 'AF'];
     }
 
