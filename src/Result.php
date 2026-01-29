@@ -77,7 +77,7 @@ final readonly class Result
         if ($this->allowsAdjacent()) {
             return clone ($result, [
                 'id' => $this->id->withPrefix($prefix),
-                'adjacent' => $this->withInput($result->input),
+                'adjacent' => clone($this, ['input' => $result->input]),
             ]);
         }
 
@@ -112,12 +112,17 @@ final readonly class Result
         return clone($this, ['id' => Id::fromValidator($validator)]);
     }
 
+    public function withPrecedentName(bool $hasPrecedentName): self
+    {
+        return clone($this, [
+            'hasPrecedentName' => $hasPrecedentName,
+            'adjacent' => $this->mapAdjacent(static fn(Result $r) => $r->withPrecedentName($hasPrecedentName)),
+            'children' => $this->mapChildren(static fn(Result $r) => $r->withPrecedentName($hasPrecedentName)),
+        ]);
+    }
+
     public function withPath(Path $path): self
     {
-        if ($this->path === $path) {
-            return $this;
-        }
-
         if ($this->path !== null) {
             $this->path->parent = $path;
 
@@ -126,12 +131,8 @@ final readonly class Result
 
         return clone($this, [
             'path' => $path,
-            'adjacent' => $this->adjacent?->withPath($path),
-            'hasPrecedentName' => $this->name !== null,
-            'children' => array_map(
-                static fn(Result $child) => $child->withPath($path),
-                $this->children,
-            ),
+            'adjacent' => $this->mapAdjacent(static fn(Result $r) => $r->withPath($path)),
+            'children' => $this->mapChildren(static fn(Result $r) => $r->withPath($path)),
         ]);
     }
 
@@ -143,11 +144,8 @@ final readonly class Result
 
         return clone ($this, [
             'name' => null,
-            'adjacent' => $this->adjacent?->withoutName(),
-            'children' => array_map(
-                fn(Result $child) => $child->name === $this->name ? $child->withoutName() : $child,
-                $this->children,
-            ),
+            'adjacent' => $this->mapAdjacent(static fn(Result $r) => $r->withoutName()),
+            'children' => $this->mapChildren(fn(Result $r) => $r->name === $this->name ? $r->withoutName() : $r),
         ]);
     }
 
@@ -164,11 +162,9 @@ final readonly class Result
 
         return clone($this, [
             'name' => $name,
-            'adjacent' => $this->adjacent?->withName($name),
-            'children' => array_map(
-                static fn(Result $child) => $child->withName($name),
-                $this->children,
-            ),
+            'hasPrecedentName' => $this->path === null,
+            'adjacent' => $this->mapAdjacent(static fn(Result $r) => $r->withName($name)),
+            'children' => $this->mapChildren(static fn(Result $r) => $r->name === null ? $r->withName($name) : $r),
         ]);
     }
 
@@ -180,25 +176,7 @@ final readonly class Result
 
         return clone($this, [
             'name' => $this->name ?? $validator->getName(),
-            'hasPrecedentName' => true,
-            'adjacent' => $this->adjacent?->withNameFrom($validator),
-            'children' => array_map(
-                static fn(Result $child) => $child->withNameFrom($validator),
-                $this->children,
-            ),
-        ]);
-    }
-
-    public function withInput(mixed $input): self
-    {
-        $currentInput = $this->input;
-
-        return clone($this, [
-            'input' => $input,
-            'children' => array_map(
-                static fn(Result $child) => $child->input === $currentInput ? $child->withInput($input) : $child,
-                $this->children,
-            ),
+            'adjacent' => $this->mapAdjacent(static fn(Result $r) => $r->withNameFrom($validator)),
         ]);
     }
 
@@ -211,8 +189,7 @@ final readonly class Result
     {
         return clone($this, [
             'hasPassed' => !$this->hasPassed,
-            'adjacent' => $this->adjacent?->withToggledValidation(),
-            'children' => array_map(static fn(Result $child) => $child->withToggledValidation(), $this->children),
+            'adjacent' => $this->mapAdjacent(static fn(Result $r) => $r->withToggledValidation()),
         ]);
     }
 
@@ -221,11 +198,8 @@ final readonly class Result
         return clone($this, [
             'hasPassed' => !$this->hasPassed,
             'hasInvertedMode' => !$this->hasInvertedMode,
-            'adjacent' => $this->adjacent?->withToggledModeAndValidation(),
-            'children' => array_map(
-                static fn(Result $child) => $child->withToggledModeAndValidation(),
-                $this->children,
-            ),
+            'adjacent' => $this->mapAdjacent(static fn(Result $r) => $r->withToggledModeAndValidation()),
+            'children' => $this->mapChildren(static fn(Result $r) => $r->withToggledModeAndValidation()),
         ]);
     }
 
@@ -246,5 +220,16 @@ final readonly class Result
         );
 
         return count($childrenThatAllowAdjacent) === 1;
+    }
+
+    /** @return array<Result> */
+    private function mapChildren(callable $callback): array
+    {
+        return $this->children === [] ? [] : array_map($callback, $this->children);
+    }
+
+    private function mapAdjacent(callable $callback): Result|null
+    {
+        return $this->adjacent === null ? null : $callback($this->adjacent);
     }
 }
