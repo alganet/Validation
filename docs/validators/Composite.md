@@ -62,3 +62,19 @@ v::composite(...$validators)->assert('respectpanda#example.com');
 - [AnyOf](AnyOf.md)
 - [NoneOf](NoneOf.md)
 - [OneOf](OneOf.md)
+
+## Templates
+
+### `Composite::TEMPLATE_SOME`
+
+|       Mode | Template                        |
+| ---------: | :------------------------------ |
+|  `default` | {{subject}} must pass the rules |
+| `inverted` | {{subject}} must pass the rules |
+
+### `Composite::TEMPLATE_ALL`
+
+|       Mode | Template                            |
+| ---------: | :---------------------------------- |
+|  `default` | {{subject}} must pass all the rules |
+| `inverted` | {{subject}} must pass all the rules |

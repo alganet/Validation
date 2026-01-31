@@ -20,6 +20,8 @@ use Respect\Validation\Id;
 use Respect\Validation\Result;
 use Respect\Validation\Validator;
 
+use function count;
+
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::IS_REPEATABLE)]
 final class Attributes implements Validator
 {
@@ -68,7 +70,10 @@ final class Attributes implements Validator
 
             $allowsNull = $property->getType()?->allowsNull() ?? false;
 
-            $childRule = new Composite(...$propertyValidators);
+            $childRule = match (count($propertyValidators) === 1) {
+                true => $propertyValidators[0],
+                false => new Composite(...$propertyValidators),
+            };
             $validators[] = new Property($propertyName, $allowsNull ? new NullOr($childRule) : $childRule);
         }
 

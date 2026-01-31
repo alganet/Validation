@@ -18,8 +18,8 @@ use Respect\Validation\Test\Validators\Core\ConcreteComposite;
 use Respect\Validation\Test\Validators\Stub;
 
 #[Group('core')]
-#[CoversClass(Composite::class)]
-final class CompositeTest extends TestCase
+#[CoversClass(LogicalComposite::class)]
+final class LogicalCompositeTest extends TestCase
 {
     #[Test]
     public function itShouldReturnItsChildren(): void
